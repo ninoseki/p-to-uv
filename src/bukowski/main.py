@@ -384,7 +384,7 @@ def strip_double_newlines(t: Table) -> Table:
         return t
 
     @safe
-    def inner():
+    def inner() -> Table:
         string = t.as_string()
         if string.endswith("\n\n"):
             string = string[:-1]
@@ -395,8 +395,11 @@ def strip_double_newlines(t: Table) -> Table:
         if not isinstance(table, Table):
             raise ValueError(f"Expected a table, but got {type(table)}")
 
-        table.name = t.name
-        return table
+        # NOTE: super table has a nested table inside
+        #       e.g. [tool.ruff.lint] => tool: { ruff: { lint: { ... } } }
+        #       meanwhile it's parent key is "ruff" in this case
+        #       so returns the nested table inside to avoid the key duplication
+        return table[t.name]  # type: ignore
 
     return inner().value_or(t)
 
